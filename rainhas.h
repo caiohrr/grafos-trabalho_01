@@ -33,4 +33,9 @@ unsigned int *rainhas_bt(unsigned int n, unsigned int k, casa *c, unsigned int *
 
 unsigned int *rainhas_ci(unsigned int n, unsigned int k, casa *c, unsigned int *r);
 
+
+void tabuleiro_zerar(unsigned int n, unsigned int *tabuleiro);
+
+void tabuleiro_imprimir(unsigned int n, unsigned int *tabuleiro);
+
 #endif
