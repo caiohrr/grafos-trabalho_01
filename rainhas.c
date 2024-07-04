@@ -4,6 +4,7 @@
 
 #define VAZIO 0
 #define RAINHA 1
+#define PROIBIDO 2
 //------------------------------------------------------------------------------
 // computa uma resposta para a instância (n,c) do problema das n rainhas 
 // com casas proibidas usando backtracking
@@ -19,9 +20,9 @@
 // devolve r
 //
 
-unsigned int *tabuleiro_alocar(unsigned int n) {
+unsigned int *vetor_uint_alocar(unsigned int n) {
 
-        unsigned int *tabuleiro = malloc(sizeof(unsigned int) * n * n);
+        unsigned int *tabuleiro = malloc(sizeof(unsigned int) * n);
         if (!tabuleiro)
                 return NULL;
 
@@ -52,83 +53,107 @@ void tabuleiro_imprimir(unsigned int n, unsigned int *tabuleiro) {
 // for colocada nessa posição nao ataca nehuma outra
 
 // Retorna 0 se for invalida, e 1 caso contrario.
-unsigned int tabuleiro_posicao_valida(unsigned int *tabuleiro, unsigned int n, unsigned int pos) {
-        unsigned int linha_atual, modulo;
-        linha_atual = pos / n; 
-        modulo = pos % n;
-
+unsigned int tabuleiro_posicao_valida(unsigned int *tabuleiro, unsigned int n, unsigned int linha, unsigned int coluna) {
         // Verifica a coluna
-        for (unsigned int i = modulo; i < n*n; i += n) {
+        for (unsigned int i = coluna; i < n*n; i += n) {
                 if (tabuleiro[i] != VAZIO)
                         return 0;
         }
 
         // Verifica a linha
-        for (unsigned int i = linha_atual * n; i < n * (linha_atual + 1); i++) {
+        for (unsigned int i = linha * n; i < (linha + 1) * n; i++) {
                 if (tabuleiro[i] != VAZIO)
                         return 0;
         }
+
         // Verifica a diagonal superior esquerda
-        for (unsigned int i = pos; i > 0; i -= (n+1)) {
-                if (tabuleiro[i] != VAZIO)
+        for (int i = (int)linha, j = (int)coluna; i >= 0 && j >= 0; i--, j--) {
+                if (tabuleiro[i * (int)n + j] != VAZIO)
                         return 0;
         }
 
         // Verifica a diagonal superior direita 
-        for (unsigned int i = pos; i > 0; i -= (n-1)) {
-                if (tabuleiro[i] != VAZIO)
+        for (int i = (int)linha, j = (int)coluna; i >= 0 && j <(int)n; i--, j++) {
+                if (tabuleiro[i * (int)n + j] != VAZIO)
                         return 0;
         }
 
         // Verifica a diagonal inferior esquerda
-        for (unsigned int i = pos; i < 0; i += (n-1)) {
-                if (tabuleiro[i] != VAZIO)
+        for (int i = (int)linha, j = (int)coluna; i < (int)n && j >= 0; i++, j--) {
+                if (tabuleiro[i * (int)n + j] != VAZIO)
                         return 0;
         }
 
         // Verifica a diagonal inferior direita 
-        for (unsigned int i = pos; i < 0; i += (n+1)) {
-                if (tabuleiro[i] != VAZIO)
+        for (int i = (int)linha, j = (int)coluna; i < (int)n && j < (int)n; i++, j++) {
+                if (tabuleiro[i * (int)n + j] != VAZIO)
                         return 0;
         }
 
         return 1;
 }
 
-unsigned int rainhas_bt_recursivo(unsigned int n, unsigned int k, casa *c, unsigned int *r, unsigned int *tabuleiro, unsigned int pos) {
-        if (pos >= n*n) {
-                printf("RETORNADO\n");
+unsigned int posicao_proibida(unsigned int *proibido, unsigned int n, unsigned int linha, unsigned int coluna ) {
+        if (proibido[linha * n + coluna] == PROIBIDO)
+                return 1;
+
+        return 0;
+}
+
+void gera_tabuleiro_proibido(casa *casas_proibidas, unsigned int k, unsigned int *proibido, unsigned int n) {
+        for (unsigned int i = 0; i < k; i++) {
+                casa casa_proibida = casas_proibidas[i];
+                printf("l=%u, c=%u\n", casa_proibida.linha, casa_proibida.coluna);
+                proibido[(casa_proibida.linha - 1) * n + (casa_proibida.coluna - 1)] = PROIBIDO;
+        }
+}
+
+void preencher_vetor_resposta(unsigned int *r, unsigned int *tabuleiro, unsigned int n) {
+        for (unsigned int i = 0; i < n; i++) {
+                for(unsigned int j = 0; j < n; j++) {
+                        if (tabuleiro[i * n + j] == RAINHA) {
+                                r[i] = j + 1;
+                        }
+                }
+        }
+}
+
+
+unsigned int rainhas_bt_recursivo(unsigned int n, unsigned int k, unsigned int *proibido, unsigned int *r, unsigned int *tabuleiro, unsigned int coluna) {
+
+        if (coluna >= n) {
+                printf("Resposta encontrada: \n");
+                tabuleiro_imprimir(n, tabuleiro); 
+                preencher_vetor_resposta(r, tabuleiro, n);
                 return 1;
         }
 
-        for (unsigned int i = 0; i < n*n; i += n) {
-                printf("FOR LOOP\n");
-                if (tabuleiro_posicao_valida(tabuleiro, n, pos)) {
-                        printf("VALIDA\n");
-                        tabuleiro[pos] = RAINHA;
-                        tabuleiro_imprimir(n, tabuleiro);
-                        if (rainhas_bt_recursivo(n, k, c, r, tabuleiro, pos + 1))
-                                return 1;
-                        tabuleiro[pos] = VAZIO;
+        unsigned int solucao_encontrada = 0;
+        
+        for (unsigned int i = 0; i < n; i++) {
+                if (tabuleiro_posicao_valida(tabuleiro, n, i, coluna) && !posicao_proibida(proibido, n, i, coluna)) {
+                        tabuleiro[i * n + coluna] = RAINHA;
+                        solucao_encontrada = rainhas_bt_recursivo(n, k, proibido, r, tabuleiro, coluna + 1) || solucao_encontrada;
+                        tabuleiro[i * n + coluna] = VAZIO;
                 }
         }
-        return 0;
+        return solucao_encontrada;
 }
 
 unsigned int *rainhas_bt(unsigned int n, unsigned int k, casa *c, unsigned int *r) {
 
-        unsigned int *tabuleiro = tabuleiro_alocar(n*n);
+        unsigned int *tabuleiro = vetor_uint_alocar(n*n);
+        unsigned int *proibido = vetor_uint_alocar(n*n);
 
         tabuleiro_zerar(n, tabuleiro);
-        tabuleiro_imprimir(n, tabuleiro);
+        tabuleiro_zerar(n, proibido);
 
-        
-        printf("RECURSAO\n");
-        rainhas_bt_recursivo(n, k, c, r, tabuleiro, 0);
-        
-        for (unsigned int i = 0; i < n; i++) {
-                r[i] = 0;
-        }
+        gera_tabuleiro_proibido(c, k, proibido, n);
+
+        tabuleiro_imprimir(n, proibido);
+
+
+        rainhas_bt_recursivo(n, k, proibido, r, tabuleiro, 0);
 
         n = n;
         k = k;
