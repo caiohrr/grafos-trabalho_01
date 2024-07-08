@@ -42,17 +42,17 @@ CPPFLAGS = $(COMMON_FLAGS)
 .PHONY : all clean
 
 #------------------------------------------------------------------------------
-all : teste
+all : teste_diferente
 
-rainhas.o teste.o : %.o : %.c
+rainhas.o teste_diferente.o : %.o : %.c
 	$(CC) -c $(CFLAGS) -o $@ $^
 
 # rainhas.o : rainhas.cpp
 # 	$(CC) -c $(CPPFLAGS) -o $@ $^
 
-teste : teste.o rainhas.o
+teste_diferente : teste_diferente.o rainhas.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 #------------------------------------------------------------------------------
 clean :
-	$(RM) teste *.o
+	$(RM) teste_diferente *.o

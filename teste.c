@@ -41,7 +41,7 @@ static casa *proibe_diagonais(unsigned int n, casa *proibido) {
 //------------------------------------------------------------------------------
 int main (void) {
 
-        unsigned int n = 4;
+        unsigned int n = 9;
         unsigned int *resposta = malloc(n*sizeof(unsigned int));
 
         unsigned int k = 2 * n;
@@ -55,13 +55,13 @@ int main (void) {
         printf("%ld\n", tempo_bt);
         mostra_resposta(n, resposta);
 
-        //printf("grafo: \n");
-        //long int tempo_ci;
-        //CRONOMETRA(rainhas_ci(n, k, proibido, resposta), tempo_ci);
-        //printf("%ld\n", tempo_ci);
-        //mostra_resposta(n, resposta);
+        printf("grafo: \n");
+        long int tempo_ci;
+        CRONOMETRA(rainhas_ci(n, k, proibido, resposta), tempo_ci);
+        printf("%ld\n", tempo_ci);
+        mostra_resposta(n, resposta);
 
-        //printf("%.2f\n", (double)tempo_ci/(double)tempo_bt);
+        printf("%.2f\n", (double)tempo_ci/(double)tempo_bt);
 
         free(proibido);
         free(resposta);
